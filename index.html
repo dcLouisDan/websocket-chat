@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Room</title>
+</head>
+<body>
+    <h1>Chat Room</h1>
+    <input type="text" id="name" placeholder="Enter your name">
+    <input type="text" id="message" placeholder="Enter your message">
+    <button id="send-btn">Send</button>
+    <div id="chat-history"></div>
+
+    <script>
+        const wsURL = "ws://localhost:8080/ws"; // Replace with your server URL
+        const chatHistory = document.getElementById("chat-history");
+        const messageInput = document.getElementById("message");
+        const nameInput = document.getElementById("name");
+        const sendButton = document.getElementById("send-btn");
+
+        let conn;
+
+        function connect() {
+            conn = new WebSocket(wsURL);
+            conn.onopen = function(e) {
+                console.log("Connection established!");
+            };
+            conn.onmessage = function(e) {
+                const msg = JSON.parse(e.data);
+                console.log(msg)
+                const name = (msg.username === nameInput.value) ? "You" : msg.username
+                chatHistory.innerHTML += `<p><b>${name}</b>: ${msg.message}</p>`;
+            };
+            conn.onerror = function(err) {
+                console.error("WebSocket error:", err);
+            };
+        }
+
+        connect();
+
+        sendButton.addEventListener("click", function() {
+            const message = messageInput.value;
+            const name = nameInput.value;
+            if (message) {
+                conn.send(JSON.stringify({ Username: name, Message: message }));
+                messageInput.value = "";
+            }
+        });
+    </script>
+</body>
+</html>
